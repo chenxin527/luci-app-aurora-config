@@ -618,7 +618,6 @@ return view.extend({
           const icons = response?.icons || [];
           this.keylist = [];
           this.vallist = [];
-          this.value("logo.svg", "logo.svg");
           if (icons.length > 0) {
             icons.forEach(
               L.bind((icon) => {
@@ -646,7 +645,6 @@ return view.extend({
           const icons = response?.icons || [];
           this.keylist = [];
           this.vallist = [];
-          this.value("logo_32.png", "logo_32.png");
           if (icons.length > 0) {
             icons.forEach(
               L.bind((icon) => {
