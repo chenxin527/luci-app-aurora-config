@@ -460,7 +460,7 @@ msgstr "Ikon yang Diunggah"
 #: applications/luci-app-aurora-config/htdocs/luci-static/resources/view/aurora/version.js:407
 #: applications/luci-app-aurora-config/root/usr/share/luci/menu.d/luci-app-aurora.json:21
 msgid "Version Management"
-msgstr ""
+msgstr "Manajemen Versi"
 
 #: applications/luci-app-aurora-config/htdocs/luci-static/resources/view/aurora/theme.js:455
 #: applications/luci-app-aurora-config/htdocs/luci-static/resources/view/aurora/theme.js:467

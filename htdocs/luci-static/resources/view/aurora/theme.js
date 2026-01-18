@@ -528,7 +528,7 @@ return view.extend({
 
     s.tab("colors", _("Color"));
     s.tab("structure", _("Structure"));
-    s.tab("toolbar", _("Floating Toolbar"));
+    s.tab("icons_toolbar", _("Icons & Toolbar"));
 
     const colorSection = s.taboption(
       "colors",
@@ -579,30 +579,8 @@ return view.extend({
     so.rmempty = false;
     so.render = renderSpacingControl;
 
-    const toolbarSettingsSection = s.taboption(
-      "toolbar",
-      form.SectionValue,
-      "_toolbar_settings",
-      form.NamedSection,
-      "theme",
-      "aurora",
-      _("Toolbar Settings"),
-      _(
-        "Enable or disable the floating toolbar that appears on the right side of the screen for quick access to common functions.",
-      ),
-    );
-    const toolbarSettingsSubsection = toolbarSettingsSection.subsection;
-
-    so = toolbarSettingsSubsection.option(
-      form.Flag,
-      "toolbar_enabled",
-      _("Enable Floating Toolbar"),
-    );
-    so.default = "1";
-    so.rmempty = false;
-
     const iconSection = s.taboption(
-      "toolbar",
+      "icons_toolbar",
       form.SectionValue,
       "_icon_management",
       form.NamedSection,
@@ -610,48 +588,136 @@ return view.extend({
       "aurora",
       _("Icon Management"),
       _(
-        "Upload custom icons for toolbar buttons and theme branding (browser tab logo). Supported formats include SVG, PNG, JPG, and more. Icons are stored in <code>/www/luci-static/aurora/images/</code> and can be used throughout the theme.",
+        "Upload theme branding assets (browser tab favicon) and custom toolbar icons. Supported formats include SVG, PNG, JPG, and more. Uploaded assets are stored in<code>/www/luci-static/aurora/images/</code> and can be used throughout the theme.",
       ),
     );
     const iconSubsection = iconSection.subsection;
     createIconUploadButton(iconSubsection, "/tmp/aurora_icon.tmp");
     createIconList(iconSubsection);
 
-    const toolbarSection = s.taboption(
-      "toolbar",
+    const logoSection = s.taboption(
+      "icons_toolbar",
       form.SectionValue,
-      "_toolbar",
-      form.GridSection,
-      "toolbar_item",
-      _("Toolbar Items"),
+      "_logo_settings",
+      form.NamedSection,
+      "theme",
+      "aurora",
+      _("Logo Settings"),
       _(
-        "Customize the buttons in your floating toolbar. Add new buttons, edit existing ones, remove unwanted items, or drag to reorder them. Each button needs a title, URL, and icon.",
+        "Select custom logos for your browser tab icon (favicon). For best compatibility, upload both SVG and PNG formats. Modern browsers will use the SVG version, while older browsers will fall back to the 32x32 PNG version.",
       ),
     );
-    const toolbarSubsection = toolbarSection.subsection;
-    toolbarSubsection.addremove = true;
-    toolbarSubsection.sortable = true;
-    toolbarSubsection.anonymous = true;
-    toolbarSubsection.nodescriptions = true;
+    const logoSubsection = logoSection.subsection;
 
-    so = toolbarSubsection.option(form.Flag, "enabled", _("Enabled"));
+    so = logoSubsection.option(form.ListValue, "logo_svg", _("SVG Logo"));
+    so.default = "logo.svg";
+    so.rmempty = false;
+    so.load = function (section_id) {
+      return L.resolveDefault(callListIcons(), { icons: [] }).then(
+        L.bind((response) => {
+          const icons = response?.icons || [];
+          this.keylist = [];
+          this.vallist = [];
+          this.value("logo.svg", "logo.svg");
+          if (icons.length > 0) {
+            icons.forEach(
+              L.bind((icon) => {
+                if (icon.endsWith(".svg")) {
+                  this.value(icon, icon);
+                }
+              }, this),
+            );
+          }
+          return form.ListValue.prototype.load.apply(this, [section_id]);
+        }, this),
+      );
+    };
+
+    so = logoSubsection.option(
+      form.ListValue,
+      "logo_png",
+      _("PNG Logo (32x32)"),
+    );
+    so.default = "logo_32.png";
+    so.rmempty = false;
+    so.load = function (section_id) {
+      return L.resolveDefault(callListIcons(), { icons: [] }).then(
+        L.bind((response) => {
+          const icons = response?.icons || [];
+          this.keylist = [];
+          this.vallist = [];
+          this.value("logo_32.png", "logo_32.png");
+          if (icons.length > 0) {
+            icons.forEach(
+              L.bind((icon) => {
+                if (icon.endsWith(".png")) {
+                  this.value(icon, icon);
+                }
+              }, this),
+            );
+          }
+          return form.ListValue.prototype.load.apply(this, [section_id]);
+        }, this),
+      );
+    };
+
+    const toolbarSection = s.taboption(
+      "icons_toolbar",
+      form.SectionValue,
+      "_toolbar_settings",
+      form.NamedSection,
+      "theme",
+      "aurora",
+      _("Floating Toolbar"),
+    );
+    const toolbarSubsection = toolbarSection.subsection;
+
+    so = toolbarSubsection.option(
+      form.Flag,
+      "toolbar_enabled",
+      _("Enable Floating Toolbar"),
+    );
+    so.description = _(
+      "Enable or disable the floating toolbar on the right side of the screen.",
+    );
+    so.default = "1";
+    so.rmempty = false;
+
+    so = toolbarSubsection.option(
+      form.SectionValue,
+      "_toolbar_items",
+      form.GridSection,
+      "toolbar_item",
+      _("Toolbar Buttons"),
+      _(
+        "Customize toolbar buttons by adding new entries, editing existing ones, removing unwanted items, or dragging rows to reorder them.",
+      ),
+    );
+    so.depends("toolbar_enabled", "1");
+    const toolbarGrid = so.subsection;
+    toolbarGrid.addremove = true;
+    toolbarGrid.sortable = true;
+    toolbarGrid.anonymous = true;
+    toolbarGrid.nodescriptions = true;
+
+    so = toolbarGrid.option(form.Flag, "enabled", _("Enabled"));
     so.default = "1";
     so.rmempty = false;
     so.editable = true;
 
-    so = toolbarSubsection.option(form.Value, "title", _("Button Title"));
+    so = toolbarGrid.option(form.Value, "title", _("Button Title"));
     so.rmempty = false;
     so.placeholder = _("e.g., System Settings");
     so.validate = (section_id, value) =>
       !value?.trim() ? _("Button title cannot be empty") : true;
 
-    so = toolbarSubsection.option(form.Value, "url", _("Target URL"));
+    so = toolbarGrid.option(form.Value, "url", _("Target URL"));
     so.rmempty = false;
     so.placeholder = "/cgi-bin/luci/admin/...";
     so.validate = (section_id, value) =>
       !value?.trim() ? _("URL cannot be empty") : true;
 
-    so = toolbarSubsection.option(form.ListValue, "icon", _("Icon"));
+    so = toolbarGrid.option(form.ListValue, "icon", _("Icon"));
     so.rmempty = false;
     so.load = function (section_id) {
       return L.resolveDefault(callListIcons(), { icons: [] }).then(

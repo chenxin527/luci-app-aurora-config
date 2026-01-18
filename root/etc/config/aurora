@@ -51,6 +51,8 @@ config aurora 'theme'
 	option nav_submenu_type 'mega-menu'
 	option toolbar_enabled '1'
 	option icon_cache_version '0.10.0'
+	option logo_svg 'logo.svg'
+	option logo_png 'logo_32.png'
 
 config toolbar_item
 	option title 'Overview'
