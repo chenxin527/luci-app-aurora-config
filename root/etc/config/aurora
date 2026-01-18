@@ -50,6 +50,7 @@ config aurora 'theme'
 	option struct_spacing '0.25rem'
 	option nav_submenu_type 'mega-menu'
 	option toolbar_enabled '1'
+	option icon_cache_version '0.10.0'
 
 config toolbar_item
 	option title 'Overview'

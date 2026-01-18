@@ -27,6 +27,12 @@ get_system_lang() {
 	echo "$lang"
 }
 
+update_icon_cache_timestamp() {
+	local timestamp=$(date +%s)
+	uci -q set aurora.theme.icon_cache_version="$timestamp"
+	uci -q commit aurora
+}
+
 parse_version() {
 	echo "$1" | sed -E 's/^v?([0-9]+\.[0-9]+\.[0-9]+(_[a-z]+)?).*/\1/'
 }
@@ -145,6 +151,7 @@ case "$1" in
 
 		if mv "$tmp_path" "$icon_path/$filename" 2>"/dev/null"; then
 			chmod 0644 "$icon_path/$filename"
+			update_icon_cache_timestamp
 			echo '{ "result": 0 }'
 		else
 			echo '{ "result": 1 }'
@@ -162,6 +169,7 @@ case "$1" in
 		fi
 
 		rm -f "$icon_path/$filename"
+		update_icon_cache_timestamp
 		echo '{ "result": 0 }'
 		;;
 	"get_installed_versions")

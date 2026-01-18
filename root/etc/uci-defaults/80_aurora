@@ -4,6 +4,14 @@
 
 logger -t aurora "Initializing Aurora theme configuration"
 
+theme_version="0"
+if command -v opkg >/dev/null 2>&1; then
+	theme_version=$(opkg list-installed luci-theme-aurora 2>/dev/null | awk '{print $3}' | head -1)
+elif command -v apk >/dev/null 2>&1; then
+	theme_version=$(apk list -I luci-theme-aurora 2>/dev/null | sed -n 's/^luci-theme-aurora-\([^ ]*\) .*/\1/p' | head -1)
+fi
+[ -z "$theme_version" ] && theme_version="0.9.0"
+
 cat > /etc/config/aurora <<EOF
 config aurora 'theme'
 	option light_background_start 'oklch(0.984 0.003 247.858)'
@@ -57,6 +65,7 @@ config aurora 'theme'
 	option struct_spacing '0.25rem'
 	option nav_submenu_type 'mega-menu'
 	option toolbar_enabled '1'
+	option icon_cache_version '$theme_version'
 
 config toolbar_item
 	option title 'Overview'
